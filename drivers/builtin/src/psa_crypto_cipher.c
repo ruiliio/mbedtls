@@ -83,6 +83,9 @@ static psa_status_t mbedtls_cipher_validate_values(
 #if !defined(PSA_WANT_ALG_CMAC)
     MBEDTLS_ASSUME(alg != PSA_ALG_CMAC);
 #endif
+#if !defined(PSA_WANT_ALG_XTS)
+    MBEDTLS_ASSUME(alg != PSA_ALG_XTS);
+#endif
 
     if (alg == PSA_ALG_STREAM_CIPHER ||
         alg == PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CHACHA20_POLY1305, 0)) {
@@ -192,6 +195,11 @@ psa_status_t mbedtls_cipher_values_from_psa(
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
             case PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CHACHA20_POLY1305, 0):
                 *mode = MBEDTLS_MODE_CHACHAPOLY;
+                break;
+#endif
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_XTS)
+            case PSA_ALG_XTS:
+                *mode = MBEDTLS_MODE_XTS;
                 break;
 #endif
             default:

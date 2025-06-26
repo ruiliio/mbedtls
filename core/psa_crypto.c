@@ -8250,6 +8250,7 @@ psa_status_t psa_generate_key_custom(const psa_key_attributes_t *attributes,
     psa_status_t status;
     psa_key_slot_t *slot = NULL;
     size_t key_buffer_size;
+    size_t key_bits;
 
     *key = MBEDTLS_SVC_KEY_ID_INIT;
 
@@ -8280,13 +8281,20 @@ psa_status_t psa_generate_key_custom(const psa_key_attributes_t *attributes,
         goto exit;
     }
 
+    key_bits = attributes->bits;
+
     /* In the case of a transparent key or an opaque key stored in local
      * storage, we have to allocate a buffer to hold the generated key material. */
     if (slot->key.bytes == 0) {
         if (PSA_KEY_LIFETIME_GET_LOCATION(attributes->lifetime) ==
             PSA_KEY_LOCATION_LOCAL_STORAGE) {
+#if defined(PSA_WANT_ALG_XTS)
+            if (psa_get_key_algorithm(attributes) == PSA_ALG_XTS) {
+                key_bits = key_bits / 2;
+            }
+#endif /* PSA_WANT_ALG_XTS */
             status = psa_validate_key_type_and_size_for_key_generation(
-                attributes->type, attributes->bits);
+                attributes->type, key_bits);
             if (status != PSA_SUCCESS) {
                 goto exit;
             }
